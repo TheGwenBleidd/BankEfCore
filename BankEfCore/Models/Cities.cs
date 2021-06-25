@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace BankEfCore
@@ -12,16 +13,21 @@ namespace BankEfCore
         /// <summary>
         /// Первичный ключ
         /// </summary>
+        [Key]
         public long ID { get; set; }
 
         /// <summary>
         /// Код города
         /// </summary>
-        public  int CityCode { get; set; }
+        [MaxLength(30)]
+        [Required]
+        public int CityCode { get; set; }
 
         /// <summary>
         /// Название города
         /// </summary>
+        [MaxLength(400)]
+        [Required]
         public string CityName { get; set; }
     }
 }

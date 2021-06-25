@@ -8,16 +8,22 @@ namespace BankEfCore
     class MySqlDbContext : DbContext
     {
         public DbSet<Countries> Countries { get; set; }
+        public DbSet<Cities> Cities { get; set; }
 
-        public MySqlDbContext()
+        public DbSet<BankClients> BankClients { get; set; }
+
+        public DbSet<Accounts> Accounts { get; set; }
+
+        public DbSet<Transactions> Transactions { get; set; }
+
+
+        public MySqlDbContext(DbContextOptions<MySqlDbContext> options)
+            : base(options)
         {
-            Database.EnsureCreated();
         }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            optionsBuilder.UseMySql("server=localhost;user=root;password=521473698Kz;database=BankSystemDb;",
-                new MySqlServerVersion(new Version(8, 0, 25)));
+            modelBuilder.Entity<BankClients>().HasAlternateKey(u => u.UniqueIdentityNumber);
         }
     }
 }

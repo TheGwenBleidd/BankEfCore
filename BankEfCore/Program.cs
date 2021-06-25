@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.IO;
 using System.Linq;
 
 namespace BankEfCore
@@ -7,24 +10,23 @@ namespace BankEfCore
     {
         static void Main(string[] args)
         {
-            using (MySqlDbContext db = new MySqlDbContext())
-            {
-                Countries city1 = new Countries { CountryCode = 123, CountryName = "Kazakhstan" };
-                Countries city2 = new Countries { CountryCode = 312, CountryName = "Uzbekistan" };
+            var builder = new ConfigurationBuilder();
 
-                db.Countries.AddRange(city1, city2);
-                db.SaveChanges();
-            }
+            builder.SetBasePath(Directory.GetCurrentDirectory());
 
-            using(MySqlDbContext db = new MySqlDbContext())
-            {
-                var countries = db.Countries.ToList();
-                Console.WriteLine("Список объектов:");
-                foreach (Countries u in countries)
-                {
-                    Console.WriteLine($"{u.ID}.{u.CountryCode} - {u.CountryName}");
-                }
-            }
+            builder.AddJsonFile("appsettings.json");
+
+            var config = builder.Build();
+
+            string connectionString = config.GetConnectionString("DefaultConnection");
+
+            var optionsBuilder = new DbContextOptionsBuilder<MySqlDbContext>();
+
+            var options = optionsBuilder.UseMySql(connectionString,
+                new MySqlServerVersion(new Version(8, 0, 25)));
+
+
+
         }
     }
 }
