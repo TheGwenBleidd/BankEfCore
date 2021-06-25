@@ -29,7 +29,7 @@ namespace BankEfCore
         /// Ссылка на страну клиента
         /// </summary>
         public int CountryId { get; set; }
-        [ForeignKey("CompanyIdKey")]
+        [ForeignKey("CountryIdKey")]
         public Countries Countries { get; set; }
 
         /// <summary>

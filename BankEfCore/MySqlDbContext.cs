@@ -1,12 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankEfCore
 {
+    /// <summary>
+    /// Контекст данных
+    /// </summary>
     class MySqlDbContext : DbContext
     {
+
+        /// <summary>
+        /// Добавление моделей 
+        /// </summary>
         public DbSet<Countries> Countries { get; set; }
         public DbSet<Cities> Cities { get; set; }
 
@@ -21,8 +29,14 @@ namespace BankEfCore
             : base(options)
         {
         }
+
+        public MySqlDbContext([NotNull] DbContextOptions options) : base(options)
+        {
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            ///Установление уникального идентификатора для свойства ИИН
             modelBuilder.Entity<BankClients>().HasAlternateKey(u => u.UniqueIdentityNumber);
         }
     }

@@ -8,13 +8,15 @@ using System.Text;
 
 namespace BankEfCore
 {
+    /// <summary>
+    ///  Без этого класса миграция будет с ошибкой 
+    /// </summary>
     class ContextFactory : IDesignTimeDbContextFactory<MySqlDbContext>
     {
         public MySqlDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<MySqlDbContext>();
 
-            // получаем конфигурацию из файла appsettings.json
             ConfigurationBuilder builder = new ConfigurationBuilder();
             builder.SetBasePath(Directory.GetCurrentDirectory());
             builder.AddJsonFile("appsettings.json");
