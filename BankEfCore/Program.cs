@@ -133,10 +133,18 @@ namespace BankEfCore
             
 
         }
-
+        /// <summary>
+        /// Вставляет данные в БД
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="countries">Страны</param>
+        /// <param name="cities">Города</param>
+        /// <param name="accounts">Счета клиентов</param>
+        /// <param name="bankClients">Клиенты банка</param>
         static void InsertData(DbContextOptions<MySqlDbContext> options, List<Countries> countries, List<Cities> cities, List<Accounts> accounts, List<BankClients> bankClients)
         {
-            if(options is null)
+            #region Проверка на null
+            if (options is null)
             {
                 throw new ArgumentNullException();
             }
@@ -160,7 +168,8 @@ namespace BankEfCore
             {
                 throw new ArgumentNullException();
             }
-
+            #endregion
+            ///Подключение через контекст и вставка данных
             using (MySqlDbContext db = new MySqlDbContext(options))
             {
                 db.Countries.AddRange(countries);
@@ -173,6 +182,10 @@ namespace BankEfCore
             Console.WriteLine("Data inserted succesfully!");
         }
 
+        /// <summary>
+        /// Показывает все таблицы в БД
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
         static void ShowAllData(DbContextOptions<MySqlDbContext> options)
         {
             using (MySqlDbContext db = new MySqlDbContext(options))
@@ -181,6 +194,7 @@ namespace BankEfCore
                 var accounts = db.Accounts.ToList();
                 var countries = db.Countries.ToList();
                 var cities = db.Cities.ToList();
+                var transactions = db.Transactions.ToList();
 
                 foreach (var client in bankclients)
                 {
@@ -202,9 +216,19 @@ namespace BankEfCore
                     Console.WriteLine($"CityName:{city.CityName}");
                 }
 
+                foreach (var transaction in transactions)
+                {
+                    Console.WriteLine($"Transaction Type:{transaction.TransactionType} Client Sender Id:{transaction.ClientSenderId} Client Sender Account Id:{transaction.ClientSenderAccountId} Client Receiver Id:{transaction.ClientReceiverId} Client Receiver Account Id:{transaction.ClientReceiverAccountId} Amount:{transaction.Amount}");
+                }
+
             };
         }
 
+        /// <summary>
+        /// Изменяет данные клиента банка
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="bankClient">Клиент банка</param>
         static void ChangeClient(DbContextOptions<MySqlDbContext> options, BankClients bankClient)
         {
             if(options is null)
@@ -240,6 +264,11 @@ namespace BankEfCore
 
         }
 
+        /// <summary>
+        /// Удаляет клиента банка из БД
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="bankClient">Клиент банка</param>
         static void DeleteClient(DbContextOptions<MySqlDbContext> options, BankClients bankClient)
         {
             if(options is null)
@@ -269,6 +298,13 @@ namespace BankEfCore
             }
         }
 
+        /// <summary>
+        /// Метод для перевода денег
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="senderAcc">Аккаунт отправителя</param>
+        /// <param name="receiverAcc">Аккаунт получателя</param>
+        /// <param name="amount">Сумма транзакции</param>
         static void MoneyTransfer(DbContextOptions<MySqlDbContext> options,Accounts senderAcc, Accounts receiverAcc, decimal amount)
         {
             if(options is null)
@@ -326,6 +362,12 @@ namespace BankEfCore
             }
         }
 
+        /// <summary>
+        /// Метод для снятия денег
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="account">Аккаунт который производит операцию снятия денег</param>
+        /// <param name="amount">Сумма транзакции</param>
         static void MoneyWithdraw(DbContextOptions<MySqlDbContext> options, Accounts account, decimal amount)
         {
             if(options is null)
@@ -373,6 +415,12 @@ namespace BankEfCore
             }
         }
 
+        /// <summary>
+        /// Метод для пополнение счета
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        /// <param name="account">Аккаунт который производит операцию пополнения счета</param>
+        /// <param name="amount">Сумма транзакции</param>
         static void MoneyRefill(DbContextOptions<MySqlDbContext> options, Accounts account, decimal amount)
         {
             if (options is null)
@@ -420,6 +468,10 @@ namespace BankEfCore
             }
         }
 
+        /// <summary>
+        /// Вывод на консоль ФИО клиента, Баланс, Страна и город проживания
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
         static void ShowBalanceCountryCity(DbContextOptions<MySqlDbContext> options)
         {
             using (MySqlDbContext db = new MySqlDbContext(options))
