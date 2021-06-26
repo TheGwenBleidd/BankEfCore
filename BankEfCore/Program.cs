@@ -128,12 +128,39 @@ namespace BankEfCore
             };
             #endregion
 
-            ShowAllData(options);
+
+            ShowBalanceCountryCity(options);
             
+
         }
 
         static void InsertData(DbContextOptions<MySqlDbContext> options, List<Countries> countries, List<Cities> cities, List<Accounts> accounts, List<BankClients> bankClients)
         {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(countries is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(cities is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(accounts is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(accounts is null)
+            {
+                throw new ArgumentNullException();
+            }
+
             using (MySqlDbContext db = new MySqlDbContext(options))
             {
                 db.Countries.AddRange(countries);
@@ -178,6 +205,237 @@ namespace BankEfCore
             };
         }
 
+        static void ChangeClient(DbContextOptions<MySqlDbContext> options, BankClients bankClient)
+        {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+
+            if(bankClient is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            using(MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var currentUser = db.BankClients.AsNoTracking().SingleOrDefault(u => u.ClientFullName == bankClient.ClientFullName);
+                if( currentUser != null)
+                {
+                    currentUser.ClientFullName = "Sponge Bob";
+                    currentUser.CountryId = 2;
+                    currentUser.CityId = 2;
+                    currentUser.Address = "Krusty Krab";
+                    currentUser.UniqueIdentityNumber = "291422013923";
+                    db.Update(currentUser);
+                    db.SaveChanges();
+                    Console.WriteLine("Success!");
+                }
+                if (currentUser == null)
+                {
+                    Console.WriteLine("Такого пользователя не существует, попробуйте еще раз");
+                }
+            };
+
+        }
+
+        static void DeleteClient(DbContextOptions<MySqlDbContext> options, BankClients bankClient)
+        {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (bankClient is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            using (MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var currentUser = db.BankClients.AsNoTracking().SingleOrDefault(u => u.ClientFullName == bankClient.ClientFullName);
+                if (currentUser != null)
+                {
+                    db.BankClients.Remove(currentUser);
+                    db.SaveChanges();
+                    Console.WriteLine("Client deleted");
+                }
+                if (currentUser == null)
+                {
+                    Console.WriteLine("Такого пользователя не существует системе, попробуйте еще раз");
+                }
+
+            }
+        }
+
+        static void MoneyTransfer(DbContextOptions<MySqlDbContext> options,Accounts senderAcc, Accounts receiverAcc, decimal amount)
+        {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+            if(senderAcc is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(receiverAcc is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(amount < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            using(MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var sender = db.Accounts.SingleOrDefault(s => s.AccountNumber == senderAcc.AccountNumber);
+                var receiver = db.Accounts.SingleOrDefault(s => s.AccountNumber == receiverAcc.AccountNumber);
+
+                if(sender != null & receiver != null)
+                {
+                    sender.Balance -= amount;
+                    receiver.Balance += amount;
+
+                    db.UpdateRange(sender, receiver);
+
+                    var transaction = new Transactions
+                    {
+                        TransactionType = "Money Transfer",
+                        ClientSenderId = sender.BankClientId,
+                        ClientSenderAccountId = (int)sender.ID,
+                        ClientReceiverId = receiver.BankClientId,
+                        ClientReceiverAccountId = (int)receiver.ID,
+                        Amount = amount
+                    };
+
+                    db.Transactions.Add(transaction);
+
+                    db.SaveChanges();
+
+                    Console.WriteLine("Money transfered succesfully!");
+                }
+
+                if(sender == null && receiver == null)
+                {
+                    Console.WriteLine("These accounts doesn't exist in system, try again");
+                }
+            }
+        }
+
+        static void MoneyWithdraw(DbContextOptions<MySqlDbContext> options, Accounts account, decimal amount)
+        {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(account is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if(amount < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            using(MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var currentAccount = db.Accounts.SingleOrDefault(a => a.AccountNumber == account.AccountNumber);
+                if(currentAccount != null)
+                {
+                    currentAccount.Balance -= amount;
+
+                    db.Update(currentAccount);
+
+                    var transaction = new Transactions
+                    {
+                        TransactionType = "Money Withdraw",
+                        ClientSenderId = currentAccount.BankClientId,
+                        ClientSenderAccountId = (int)currentAccount.ID,
+                    };
+
+                    db.Transactions.Add(transaction);
+
+                    db.SaveChanges();
+
+                    Console.WriteLine("Money withdrawed succesfully!");
+                }
+
+                if(currentAccount == null)
+                {
+                    Console.WriteLine("This account doesn't exist in system, try again!");
+                }
+            }
+        }
+
+        static void MoneyRefill(DbContextOptions<MySqlDbContext> options, Accounts account, decimal amount)
+        {
+            if (options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (account is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (amount < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            using (MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var currentAccount = db.Accounts.SingleOrDefault(a => a.AccountNumber == account.AccountNumber);
+                if (currentAccount != null)
+                {
+                    currentAccount.Balance += amount;
+
+                    db.Update(currentAccount);
+
+                    var transaction = new Transactions
+                    {
+                        TransactionType = "Money Refill",
+                        ClientSenderId = currentAccount.BankClientId,
+                        ClientSenderAccountId = (int)currentAccount.ID,
+                    };
+
+                    db.Transactions.Add(transaction);
+
+                    db.SaveChanges();
+
+                    Console.WriteLine("Money refilled succesfully!");
+                }
+
+                if (currentAccount == null)
+                {
+                    Console.WriteLine("This account doesn't exist in system, try again!");
+                }
+            }
+        }
+
+        static void ShowBalanceCountryCity(DbContextOptions<MySqlDbContext> options)
+        {
+            using (MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var query = from account in db.Accounts
+                            join client in db.BankClients on account.BankClientId equals client.Id
+                            join country in db.Countries on client.CountryId equals country.ID
+                            join city in db.Cities on client.CityId equals city.ID
+                            select new { FullName = client.ClientFullName, Balance = account.Balance, Country = country.CountryName, City = city.CityName };
+
+                foreach (var item in query)
+                {
+                    Console.WriteLine($"tCountry:{item.Country}\tCity:{item.City}\tFullName:{item.FullName}\tBalance:{item.Balance}");
+                }
+            }
+        }
     }
 }
 
