@@ -128,8 +128,6 @@ namespace BankEfCore
             };
             #endregion
 
-
-            ShowBalanceCountryCity(options);
             
 
         }
@@ -474,6 +472,11 @@ namespace BankEfCore
         /// <param name="options">Конфигурация</param>
         static void ShowBalanceCountryCity(DbContextOptions<MySqlDbContext> options)
         {
+            if(options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
             using (MySqlDbContext db = new MySqlDbContext(options))
             {
                 var query = from account in db.Accounts
@@ -486,6 +489,74 @@ namespace BankEfCore
                 {
                     Console.WriteLine($"tCountry:{item.Country}\tCity:{item.City}\tFullName:{item.FullName}\tBalance:{item.Balance}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Метод который выводит общий баланс клиентов из стран
+        /// </summary>
+        /// <param name="options"></param>
+        static void ShowBalanceByCountry(DbContextOptions<MySqlDbContext> options)
+        {
+            if (options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            using (MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var query = from account in db.Accounts
+                            join client in db.BankClients on account.BankClientId equals client.Id
+                            join country in db.Countries on client.CountryId equals country.ID
+                            select new {country.CountryName, account.Balance}
+                            into x
+                            group x by new {x.CountryName}
+                            into y
+                            select new
+                            {
+                                y.Key.CountryName,
+                                Count = y.Select(x => x.Balance).Sum()
+                            };
+
+                foreach (var item in query)
+                {
+                    Console.WriteLine($"CountryName:{item.CountryName} TotalBalance:{item.Count}");
+                }
+               
+            }
+        }
+
+        /// <summary>
+        /// Метод выводит общий баланс клиентов по городам
+        /// </summary>
+        /// <param name="options">Конфигурация</param>
+        static void ShowBalanceByCity(DbContextOptions<MySqlDbContext> options)
+        {
+            if (options is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            using (MySqlDbContext db = new MySqlDbContext(options))
+            {
+                var query = from account in db.Accounts
+                            join client in db.BankClients on account.BankClientId equals client.Id
+                            join city in db.Cities on client.CityId equals city.ID
+                            select new { city.CityName, account.Balance }
+                            into x
+                            group x by new { x.CityName }
+                            into y
+                            select new
+                            {
+                                y.Key.CityName,
+                                Count = y.Select(x => x.Balance).Sum()
+                            };
+
+                foreach (var item in query)
+                {
+                    Console.WriteLine($"CountryName:{item.CityName} TotalBalance:{item.Count}");
+                }
+
             }
         }
     }
